@@ -1,6 +1,10 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    const { migrate } = await import('./db/migrate');
-    await migrate();
+    try {
+      const { migrate } = await import('./db/migrate');
+      await migrate();
+    } catch (err) {
+      console.error('[instrumentation] Migration failed:', err);
+    }
   }
 }
