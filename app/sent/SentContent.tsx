@@ -81,11 +81,16 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
                 {email.error && <div className="text-[10px] text-red-400">{email.error}</div>}
               </div>
               {email.status === 'sent' && (
-                <div className="flex items-center gap-1 flex-shrink-0">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {email.open_count > 0 ? (
-                    <span className="flex items-center gap-1 text-[10px] text-teal-400">
+                    <span className="flex items-center gap-1 text-[10px] text-teal-600">
                       <Eye className="w-3 h-3" />
                       {email.open_count > 1 ? `${email.open_count}×` : 'Opened'}
+                      {email.opened_at && (
+                        <span className="text-gray-400 ml-1">
+                          · last {new Date(email.opened_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
                     </span>
                   ) : (
                     <span className="flex items-center gap-1 text-[10px] text-gray-400">

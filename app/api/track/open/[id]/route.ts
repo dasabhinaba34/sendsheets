@@ -14,7 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     await db.execute({
       sql: `UPDATE sent_emails
             SET open_count = open_count + 1,
-                opened_at  = COALESCE(opened_at, datetime('now'))
+                opened_at  = datetime('now')
             WHERE id = ?`,
       args: [id],
     });
