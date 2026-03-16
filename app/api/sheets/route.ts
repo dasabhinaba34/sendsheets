@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/session';
 import { cookies } from 'next/headers';
-import { parseSheetId, fetchSheetData } from '@/lib/google/sheets';
+import { parseSheetId, fetchSheetData, fetchSheetTabs } from '@/lib/google/sheets';
 
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies();
@@ -24,8 +24,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const data = await fetchSheetData(session.userEmail, sheetId, tab);
-    return NextResponse.json({ sheetId, ...data });
+    const [tabs, data] = await Promise.all([
+      fetchSheetTabs(session.userEmail, sheetId),
+      fetchSheetData(session.userEmail, sheetId, tab),
+    ]);
+    return NextResponse.json({ sheetId, tabs, activeTab: tab, ...data });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to fetch sheet data';
     return NextResponse.json({ error: message }, { status: 500 });

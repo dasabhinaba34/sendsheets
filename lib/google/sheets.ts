@@ -7,22 +7,13 @@ export function parseSheetId(url: string): string | null {
   return match ? match[1] : null;
 }
 
-export async function fetchSheetData(
-  userEmail: string,
-  sheetId: string,
-  tabName = 'Sheet1'
-): Promise<{ headers: string[]; rows: Record<string, string>[]; rowCount: number }> {
-  const tokenRecord = await getTokensByEmail(userEmail);
-  if (!tokenRecord) throw new Error('No tokens found for user');
-
+function buildOAuthClient(tokenRecord: Awaited<ReturnType<typeof getTokensByEmail>> & object) {
   const oauth2Client = getOAuth2Client();
   oauth2Client.setCredentials({
     access_token: tokenRecord.access_token,
     refresh_token: tokenRecord.refresh_token ?? undefined,
     expiry_date: new Date(tokenRecord.expires_at).getTime(),
   });
-
-  // Auto-refresh listener
   oauth2Client.on('tokens', (newTokens) => {
     void saveTokens({
       ...tokenRecord,
@@ -33,6 +24,29 @@ export async function fetchSheetData(
         : tokenRecord.expires_at,
     });
   });
+  return oauth2Client;
+}
+
+export async function fetchSheetTabs(
+  userEmail: string,
+  sheetId: string
+): Promise<string[]> {
+  const tokenRecord = await getTokensByEmail(userEmail);
+  if (!tokenRecord) throw new Error('No tokens found for user');
+  const oauth2Client = buildOAuthClient(tokenRecord);
+  const sheets = google.sheets({ version: 'v4', auth: oauth2Client });
+  const response = await sheets.spreadsheets.get({ spreadsheetId: sheetId, fields: 'sheets.properties.title' });
+  return (response.data.sheets ?? []).map((s) => s.properties?.title ?? '').filter(Boolean);
+}
+
+export async function fetchSheetData(
+  userEmail: string,
+  sheetId: string,
+  tabName = 'Sheet1'
+): Promise<{ headers: string[]; rows: Record<string, string>[]; rowCount: number }> {
+  const tokenRecord = await getTokensByEmail(userEmail);
+  if (!tokenRecord) throw new Error('No tokens found for user');
+  const oauth2Client = buildOAuthClient(tokenRecord);
 
   const sheets = google.sheets({ version: 'v4', auth: oauth2Client });
   const response = await sheets.spreadsheets.values.get({

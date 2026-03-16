@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Link2, Loader2 } from 'lucide-react';
+import { Link2, Loader2, TableProperties } from 'lucide-react';
 
 interface SheetLoaderProps {
   onLoad: (data: { sheetId: string; headers: string[]; rows: Record<string, string>[]; rowCount: number }, url: string) => void;
@@ -10,25 +10,53 @@ interface SheetLoaderProps {
 export function SheetLoader({ onLoad }: SheetLoaderProps) {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [tabLoading, setTabLoading] = useState(false);
   const [error, setError] = useState('');
+  const [tabs, setTabs] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState('');
+
+  async function fetchData(sheetUrl: string, tab: string) {
+    const res = await fetch('/api/sheets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: sheetUrl, tab }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? 'Failed to load sheet');
+    return data;
+  }
 
   async function handleLoad() {
     if (!url.trim()) return;
     setLoading(true);
     setError('');
+    setTabs([]);
+    setActiveTab('');
     try {
-      const res = await fetch('/api/sheets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Failed to load sheet');
+      const data = await fetchData(url, 'Sheet1');
+      const returnedTabs: string[] = data.tabs ?? [];
+      const firstTab = returnedTabs[0] ?? 'Sheet1';
+      setTabs(returnedTabs);
+      setActiveTab(data.activeTab ?? firstTab);
       onLoad(data, url);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load sheet');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleTabChange(tab: string) {
+    setActiveTab(tab);
+    setTabLoading(true);
+    setError('');
+    try {
+      const data = await fetchData(url, tab);
+      onLoad(data, url);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load sheet');
+    } finally {
+      setTabLoading(false);
     }
   }
 
@@ -56,6 +84,32 @@ export function SheetLoader({ onLoad }: SheetLoaderProps) {
           Load
         </button>
       </div>
+
+      {tabs.length > 1 && (
+        <div className="flex items-center gap-2 pt-1">
+          <TableProperties className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+          <span className="text-xs text-gray-500">Sheet tab:</span>
+          <div className="flex flex-wrap gap-1.5">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => handleTabChange(tab)}
+                disabled={tabLoading}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors disabled:opacity-50 ${
+                  tab === activeTab
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {tabLoading && tab === activeTab ? (
+                  <span className="flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" />{tab}</span>
+                ) : tab}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {error && <p className="text-red-400 text-xs">{error}</p>}
     </div>
   );
