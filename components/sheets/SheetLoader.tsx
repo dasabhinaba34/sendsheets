@@ -34,17 +34,17 @@ export function SheetLoader({ onLoad }: SheetLoaderProps) {
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-white/70">Google Sheet URL</label>
+      <label className="text-sm font-medium text-gray-600">Google Sheet URL</label>
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleLoad()}
             placeholder="https://docs.google.com/spreadsheets/d/..."
-            className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-green-500/50"
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-green-500/50"
           />
         </div>
         <button

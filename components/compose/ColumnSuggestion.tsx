@@ -58,15 +58,15 @@ export const ColumnSuggestionList = forwardRef<SuggestionListRef, Props>(
     if (items.length === 0) return null;
 
     return (
-      <div className="bg-[#1a1a2e] border border-white/15 rounded-lg shadow-xl overflow-hidden py-1 min-w-[160px]">
+      <div className="bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden py-1 min-w-[160px]">
         {items.map((item, i) => (
           <button
             key={item.label}
             onMouseDown={(e) => { e.preventDefault(); command(item); }}
             className={`w-full text-left px-3 py-1.5 text-sm font-mono transition-colors ${
               i === selected
-                ? 'bg-green-500/20 text-green-300'
-                : 'text-white/60 hover:bg-white/5 hover:text-white'
+                ? 'bg-green-50 text-green-700'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
             }`}
           >
             @{item.label}

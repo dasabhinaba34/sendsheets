@@ -45,8 +45,8 @@ function ToolbarButton({
       title={title}
       className={`p-1.5 rounded transition-colors ${
         active
-          ? 'bg-white/20 text-white'
-          : 'text-white/40 hover:text-white/80 hover:bg-white/10'
+          ? 'bg-gray-200 text-gray-900'
+          : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
       }`}
     >
       {children}
@@ -55,7 +55,7 @@ function ToolbarButton({
 }
 
 function Divider() {
-  return <div className="w-px h-5 bg-white/10 mx-0.5" />;
+  return <div className="w-px h-5 bg-gray-200 mx-0.5" />;
 }
 
 export function RichTextEditor({ value, onChange, onFocus, active, headers = [] }: RichTextEditorProps) {
@@ -130,14 +130,14 @@ export function RichTextEditor({ value, onChange, onFocus, active, headers = [] 
       Color,
       Highlight.configure({ multicolor: true }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Link.configure({ openOnClick: false, HTMLAttributes: { class: 'text-blue-400 underline' } }),
+      Link.configure({ openOnClick: false, HTMLAttributes: { class: 'text-blue-600 underline' } }),
       ColumnVariableNode,
       columnSuggestionExt,
     ],
     content: value,
     editorProps: {
       attributes: {
-        class: 'min-h-[220px] px-4 py-3 text-sm text-white focus:outline-none prose prose-invert max-w-none',
+        class: 'min-h-[220px] px-4 py-3 text-sm text-gray-900 focus:outline-none prose max-w-none',
       },
     },
     onUpdate({ editor: e }) {
@@ -167,9 +167,9 @@ export function RichTextEditor({ value, onChange, onFocus, active, headers = [] 
   if (!editor) return null;
 
   return (
-    <div className={`bg-white/5 border rounded-xl overflow-hidden transition-colors ${active ? 'border-green-500/50' : 'border-white/10'}`}>
+    <div className={`bg-white border rounded-xl overflow-hidden transition-colors ${active ? 'border-green-500/50' : 'border-gray-200'}`}>
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-white/10 bg-white/3">
+      <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 bg-gray-50">
         <ToolbarButton onClick={() => editor.chain().focus().undo().run()} title="Undo"><Undo className="w-3.5 h-3.5" /></ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().redo().run()} title="Redo"><Redo className="w-3.5 h-3.5" /></ToolbarButton>
         <Divider />
@@ -183,8 +183,8 @@ export function RichTextEditor({ value, onChange, onFocus, active, headers = [] 
         <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive('strike')} title="Strikethrough"><Strikethrough className="w-3.5 h-3.5" /></ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleCode().run()} active={editor.isActive('code')} title="Inline code"><Code className="w-3.5 h-3.5" /></ToolbarButton>
         <Divider />
-        <label title="Text color" className="relative p-1.5 rounded hover:bg-white/10 cursor-pointer">
-          <span className="text-[11px] font-bold text-white/40" style={{ fontFamily: 'serif' }}>A</span>
+        <label title="Text color" className="relative p-1.5 rounded hover:bg-gray-100 cursor-pointer">
+          <span className="text-[11px] font-bold text-gray-500" style={{ fontFamily: 'serif' }}>A</span>
           <input
             type="color"
             className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
@@ -209,8 +209,8 @@ export function RichTextEditor({ value, onChange, onFocus, active, headers = [] 
       <EditorContent editor={editor} />
 
       {headers.length > 0 && (
-        <div className="px-3 py-1.5 border-t border-white/5 bg-white/2">
-          <span className="text-[10px] text-white/20">Type <kbd className="text-white/30 bg-white/10 px-1 rounded">@</kbd> to insert a column variable</span>
+        <div className="px-3 py-1.5 border-t border-gray-200 bg-gray-50">
+          <span className="text-[10px] text-gray-400">Type <kbd className="text-gray-500 bg-gray-100 px-1 rounded">@</kbd> to insert a column variable</span>
         </div>
       )}
     </div>

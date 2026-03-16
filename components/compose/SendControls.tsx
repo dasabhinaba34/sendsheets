@@ -56,12 +56,12 @@ export function SendControls({
   return (
     <div className="space-y-3">
       {/* Track opens toggle */}
-      <div className="flex items-center justify-between px-3 py-2.5 bg-white/3 border border-white/8 rounded-lg">
+      <div className="flex items-center justify-between px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
         <div className="flex items-center gap-2">
-          <Eye className="w-4 h-4 text-white/40" />
+          <Eye className="w-4 h-4 text-gray-400" />
           <div>
-            <div className="text-sm text-white/70">Track opens</div>
-            <div className="text-[11px] text-white/30">
+            <div className="text-sm text-gray-600">Track opens</div>
+            <div className="text-[11px] text-gray-400">
               {trackOpens ? 'Sends as HTML email with tracking pixel' : 'Sends as plain text, no tracking'}
             </div>
           </div>
@@ -69,7 +69,7 @@ export function SendControls({
         <button
           onClick={() => onTrackOpensChange(!trackOpens)}
           className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${
-            trackOpens ? 'bg-green-500' : 'bg-white/15'
+            trackOpens ? 'bg-green-500' : 'bg-gray-200'
           }`}
         >
           <span
@@ -94,11 +94,11 @@ export function SendControls({
       )}
 
       {showConfirm && (
-        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 space-y-2">
-          <p className="text-sm text-yellow-300">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 space-y-2">
+          <p className="text-sm text-yellow-700">
             Send to <strong>{rowCount}</strong> recipients via{' '}
-            <code className="bg-white/10 px-1 rounded text-xs">@{recipientColumn}</code>?
-            {trackOpens && <span className="ml-1 text-teal-300">(with open tracking)</span>}
+            <code className="bg-gray-100 px-1 rounded text-xs">@{recipientColumn}</code>?
+            {trackOpens && <span className="ml-1 text-teal-700">(with open tracking)</span>}
           </p>
           <div className="flex gap-2">
             <button
@@ -111,7 +111,7 @@ export function SendControls({
             </button>
             <button
               onClick={() => setShowConfirm(false)}
-              className="px-3 py-1.5 text-white/40 hover:text-white/70 text-sm transition-colors"
+              className="px-3 py-1.5 text-gray-400 hover:text-gray-700 text-sm transition-colors"
             >
               Cancel
             </button>
@@ -123,7 +123,7 @@ export function SendControls({
         <button
           onClick={handleSaveDraft}
           disabled={saving || disabled}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 disabled:opacity-40 text-white/70 text-sm rounded-lg transition-colors border border-white/10"
+          className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 disabled:opacity-40 text-gray-600 text-sm rounded-lg transition-colors border border-gray-200"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Save Draft

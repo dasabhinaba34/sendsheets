@@ -28,20 +28,20 @@ export function DashboardContent() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white">
+        <h1 className="text-2xl font-bold text-gray-900">
           {user?.name ? `Welcome, ${user.name.split(' ')[0]}` : 'Dashboard'}
         </h1>
-        <p className="text-white/40 text-sm mt-1">Your email campaign overview</p>
+        <p className="text-gray-500 text-sm mt-1">Your email campaign overview</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className="bg-white/5 border border-white/5 rounded-xl p-5">
+            <div key={stat.label} className="bg-gray-50 border border-gray-200 rounded-xl p-5">
               <Icon className={`w-5 h-5 ${stat.color} mb-3`} />
-              <div className="text-2xl font-bold text-white">{stat.value}</div>
-              <div className="text-xs text-white/40 mt-0.5">{stat.label}</div>
+              <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+              <div className="text-xs text-gray-500 mt-0.5">{stat.label}</div>
             </div>
           );
         })}
@@ -49,12 +49,12 @@ export function DashboardContent() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-white/70 uppercase tracking-wide">Recent Campaigns</h2>
+          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Recent Campaigns</h2>
           <Link href="/sent" className="text-xs text-green-400 hover:text-green-300">View all</Link>
         </div>
         {campaigns.length === 0 ? (
-          <div className="bg-white/3 border border-white/5 rounded-xl p-8 text-center">
-            <p className="text-white/30 text-sm">No campaigns yet.</p>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
+            <p className="text-gray-400 text-sm">No campaigns yet.</p>
             <Link href="/compose" className="text-green-400 text-sm hover:underline mt-2 inline-block">
               Start your first campaign
             </Link>
@@ -62,20 +62,20 @@ export function DashboardContent() {
         ) : (
           <div className="space-y-2">
             {campaigns.slice(0, 5).map((c: { id: string; sheet_id: string; sent_count: number; failed_count: number; status: string; sent_at: string }) => (
-              <div key={c.id} className="bg-white/5 border border-white/5 rounded-lg px-4 py-3 flex items-center justify-between">
+              <div key={c.id} className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 flex items-center justify-between">
                 <div>
-                  <div className="text-sm text-white font-medium">{c.sheet_id}</div>
-                  <div className="text-xs text-white/30 mt-0.5">
+                  <div className="text-sm text-gray-900 font-medium">{c.sheet_id}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">
                     {c.sent_count} sent · {c.failed_count} failed · {new Date(c.sent_at).toLocaleDateString()}
                   </div>
                 </div>
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full ${
                     c.status === 'done'
-                      ? 'bg-green-500/10 text-green-400'
+                      ? 'bg-green-50 text-green-700'
                       : c.status === 'partial'
-                      ? 'bg-yellow-500/10 text-yellow-400'
-                      : 'bg-white/5 text-white/40'
+                      ? 'bg-yellow-50 text-yellow-700'
+                      : 'bg-gray-100 text-gray-500'
                   }`}
                 >
                   {c.status}
@@ -86,9 +86,9 @@ export function DashboardContent() {
         )}
       </div>
 
-      <div className="bg-green-500/5 border border-green-500/10 rounded-xl p-5">
+      <div className="bg-green-50 border border-green-200 rounded-xl p-5">
         <h3 className="text-sm font-medium text-green-400 mb-2">Ready to send?</h3>
-        <p className="text-white/40 text-xs mb-3">Load a Google Sheet, compose your email with @column variables, and send to everyone at once.</p>
+        <p className="text-gray-500 text-xs mb-3">Load a Google Sheet, compose your email with @column variables, and send to everyone at once.</p>
         <Link href="/compose" className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-sm rounded-lg transition-colors">
           <Send className="w-4 h-4" />
           New Campaign

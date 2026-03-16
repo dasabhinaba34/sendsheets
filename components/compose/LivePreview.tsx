@@ -43,7 +43,7 @@ export function LivePreview({ subjectTemplate, bodyTemplate, firstRow }: LivePre
 
   if (!firstRow) {
     return (
-      <div className="h-full flex items-center justify-center text-white/20 text-sm">
+      <div className="h-full flex items-center justify-center text-gray-400 text-sm">
         Load a sheet to see preview
       </div>
     );
@@ -51,7 +51,7 @@ export function LivePreview({ subjectTemplate, bodyTemplate, firstRow }: LivePre
 
   if (!preview) {
     return (
-      <div className="h-full flex items-center justify-center text-white/20 text-sm">
+      <div className="h-full flex items-center justify-center text-gray-400 text-sm">
         Type a subject or body to preview...
       </div>
     );
@@ -59,17 +59,17 @@ export function LivePreview({ subjectTemplate, bodyTemplate, firstRow }: LivePre
 
   return (
     <div className="space-y-3">
-      <div className="text-xs text-white/40 uppercase tracking-wide">Preview (row 1)</div>
-      <div className="bg-white/5 rounded-lg p-4 space-y-3">
+      <div className="text-xs text-gray-500 uppercase tracking-wide">Preview (row 1)</div>
+      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
         <div>
-          <div className="text-[10px] text-white/30 mb-1">Subject</div>
-          <div className="text-sm text-white font-medium">{preview.previewSubject || '(empty)'}</div>
+          <div className="text-[10px] text-gray-400 mb-1">Subject</div>
+          <div className="text-sm text-gray-900 font-medium">{preview.previewSubject || '(empty)'}</div>
         </div>
-        <div className="border-t border-white/5" />
+        <div className="border-t border-gray-200" />
         <div>
-          <div className="text-[10px] text-white/30 mb-1">Body</div>
+          <div className="text-[10px] text-gray-400 mb-1">Body</div>
           <div
-            className="text-sm text-white/80 prose prose-invert prose-sm max-w-none"
+            className="text-sm text-gray-700 prose prose-sm max-w-none"
             dangerouslySetInnerHTML={{ __html: preview.previewBody || '<em>(empty)</em>' }}
           />
         </div>

@@ -42,6 +42,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard`);
   } catch (err) {
     console.error('Auth callback error:', err);
-    return NextResponse.json({ error: String(err), detail: err instanceof Error ? err.stack : undefined }, { status: 500 });
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=token_exchange_failed`);
   }
 }

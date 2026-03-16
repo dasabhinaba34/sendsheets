@@ -28,15 +28,15 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-60 bg-[#0a0a0f] text-white min-h-screen flex flex-col border-r border-white/5">
-      <div className="px-6 py-5 border-b border-white/5">
+    <aside className="w-60 bg-white text-gray-900 min-h-screen flex flex-col border-r border-gray-200">
+      <div className="px-6 py-5 border-b border-gray-200">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center shadow-lg shadow-green-500/20">
             <Send className="w-4 h-4 text-white" />
           </div>
           <div>
-            <div className="font-bold text-sm text-white leading-none">Sendsheets</div>
-            <div className="text-[10px] text-white/30 mt-0.5">Sheet-powered email</div>
+            <div className="font-bold text-sm text-gray-900 leading-none">Sendsheets</div>
+            <div className="text-[10px] text-gray-400 mt-0.5">Sheet-powered email</div>
           </div>
         </div>
       </div>
@@ -51,8 +51,8 @@ export function Sidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
                 active
-                  ? 'bg-white/10 text-white font-medium'
-                  : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                  ? 'bg-gray-100 text-gray-900 font-medium'
+                  : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
               }`}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
@@ -62,21 +62,21 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="px-4 py-4 border-t border-white/5">
+      <div className="px-4 py-4 border-t border-gray-200">
         {user && (
           <div className="flex items-center gap-2 mb-3">
             {user.picture && (
               <img src={user.picture} alt="" className="w-7 h-7 rounded-full" />
             )}
             <div className="flex-1 min-w-0">
-              <div className="text-xs text-white/70 truncate">{user.name ?? user.email}</div>
-              <div className="text-[10px] text-white/30 truncate">{user.email}</div>
+              <div className="text-xs text-gray-600 truncate">{user.name ?? user.email}</div>
+              <div className="text-[10px] text-gray-400 truncate">{user.email}</div>
             </div>
           </div>
         )}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 text-xs text-white/30 hover:text-white/60 transition-colors w-full"
+          className="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-600 transition-colors w-full"
         >
           <LogOut className="w-3.5 h-3.5" />
           Sign out

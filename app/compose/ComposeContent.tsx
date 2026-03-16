@@ -82,34 +82,34 @@ export function ComposeContent() {
   return (
     <div className="p-8 space-y-6 max-w-7xl mx-auto">
       <div>
-        <h1 className="text-2xl font-bold text-white">Compose Campaign</h1>
-        <p className="text-white/40 text-sm mt-1">Load a sheet, write your email, send to everyone</p>
+        <h1 className="text-2xl font-bold text-gray-900">Compose Campaign</h1>
+        <p className="text-gray-500 text-sm mt-1">Load a sheet, write your email, send to everyone</p>
       </div>
 
       <SheetLoader onLoad={handleSheetLoad} />
 
       {sheet && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="bg-white/3 border border-white/5 rounded-lg p-3 flex items-center justify-between">
-            <span className="text-sm text-white/50">Rows loaded</span>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+            <span className="text-sm text-gray-500">Rows loaded</span>
             <span className="text-lg font-bold text-green-400">{sheet.rowCount}</span>
           </div>
-          <div className="bg-white/3 border border-white/5 rounded-lg p-3">
-            <label className="text-xs text-white/50 block mb-1.5">Recipient column (email)</label>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+            <label className="text-xs text-gray-500 block mb-1.5">Recipient column (email)</label>
             <select
               value={recipientColumn}
               onChange={(e) => setRecipientColumn(e.target.value)}
-              className="w-full bg-transparent text-white text-sm focus:outline-none"
+              className="w-full bg-transparent text-gray-900 text-sm focus:outline-none"
             >
               <option value="">Select column...</option>
               {sheet.headers.map((h) => (
-                <option key={h} value={h} className="bg-[#1a1a2e]">{h}</option>
+                <option key={h} value={h} className="bg-white">{h}</option>
               ))}
             </select>
           </div>
-          <div className="bg-white/3 border border-white/5 rounded-lg p-3 flex items-center justify-between">
-            <span className="text-sm text-white/50">Columns</span>
-            <span className="text-lg font-bold text-white/70">{sheet.headers.length}</span>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+            <span className="text-sm text-gray-500">Columns</span>
+            <span className="text-lg font-bold text-gray-600">{sheet.headers.length}</span>
           </div>
         </div>
       )}
@@ -138,7 +138,7 @@ export function ComposeContent() {
           />
         </div>
 
-        <div className="bg-white/3 border border-white/5 rounded-xl p-5 min-h-64">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 min-h-64">
           <LivePreview
             subjectTemplate={subject}
             bodyTemplate={body}
