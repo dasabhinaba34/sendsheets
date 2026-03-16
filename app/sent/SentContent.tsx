@@ -2,7 +2,7 @@
 
 import useSWR from 'swr';
 import { useState } from 'react';
-import { Send, ChevronDown, ChevronRight, CheckCircle, XCircle, Eye, EyeOff } from 'lucide-react';
+import { Send, ChevronDown, ChevronRight, CheckCircle, XCircle, Eye, EyeOff, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { fmtDateTime, fmtTime, fmtShort } from '@/lib/date';
 
@@ -55,6 +55,14 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
             {data.emails?.filter((e: SentEmail) => e.open_count > 0).length ?? 0} opened
           </span>
         )}
+        <Link
+          href={`/sent/${campaign.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="p-1 text-gray-300 hover:text-gray-600 transition-colors flex-shrink-0"
+          title="View analytics"
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+        </Link>
         <span
           className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
             campaign.status === 'done'
