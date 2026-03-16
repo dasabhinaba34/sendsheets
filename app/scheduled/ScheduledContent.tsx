@@ -2,6 +2,7 @@
 
 import useSWR from 'swr';
 import { Calendar } from 'lucide-react';
+import { fmtDateTime } from '@/lib/date';
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -36,7 +37,7 @@ export function ScheduledContent() {
               <div>
                 <div className="text-sm text-gray-900">{s.draft_id ?? 'Campaign'}</div>
                 <div className="text-xs text-gray-500 mt-0.5">
-                  Scheduled for {new Date(s.send_at).toLocaleString()}
+                  Scheduled for {fmtDateTime(s.send_at)}
                 </div>
               </div>
               <span className={`text-xs px-2 py-0.5 rounded-full ${

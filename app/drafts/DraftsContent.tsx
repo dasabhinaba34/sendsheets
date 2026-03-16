@@ -3,6 +3,7 @@
 import useSWR from 'swr';
 import { FileText, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { fmtDate } from '@/lib/date';
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -49,7 +50,7 @@ export function DraftsContent() {
                 <div className="text-sm font-medium text-gray-900 truncate">{draft.subject_template || '(no subject)'}</div>
                 <div className="text-xs text-gray-500 truncate">{draft.sheet_url || draft.sheet_id}</div>
                 <div className="text-xs text-gray-400">
-                  {draft.row_count} rows · via @{draft.recipient_column} · {new Date(draft.created_at).toLocaleDateString()}
+                  {draft.row_count} rows · via @{draft.recipient_column} · {fmtDate(draft.created_at)}
                 </div>
               </div>
               <button

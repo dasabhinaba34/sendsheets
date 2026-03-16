@@ -4,6 +4,7 @@ import useSWR from 'swr';
 import { useState } from 'react';
 import { Send, ChevronDown, ChevronRight, CheckCircle, XCircle, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import { fmtDateTime, fmtTime, fmtShort } from '@/lib/date';
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -46,7 +47,7 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium text-gray-900 truncate">{campaign.subject_template}</div>
           <div className="text-xs text-gray-400 mt-0.5">
-            {campaign.sheet_id} · {campaign.sent_count}/{campaign.total_rows} sent · {new Date(campaign.sent_at).toLocaleString()}
+            {campaign.sheet_id} · {campaign.sent_count}/{campaign.total_rows} sent · {fmtDateTime(campaign.sent_at)}
           </div>
         </div>
         {expanded && data && (
@@ -88,7 +89,7 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
                       {email.open_count > 1 ? `${email.open_count}×` : 'Opened'}
                       {email.opened_at && (
                         <span className="text-gray-400 ml-1">
-                          · last {new Date(email.opened_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          · last {fmtShort(email.opened_at)}
                         </span>
                       )}
                     </span>
@@ -100,7 +101,7 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
                   )}
                 </div>
               )}
-              <div className="text-[10px] text-gray-400">{new Date(email.sent_at).toLocaleTimeString()}</div>
+              <div className="text-[10px] text-gray-400">{fmtTime(email.sent_at)}</div>
             </div>
           ))}
         </div>

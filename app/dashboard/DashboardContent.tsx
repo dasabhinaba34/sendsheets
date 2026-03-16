@@ -3,6 +3,7 @@
 import useSWR from 'swr';
 import { Send, FileText, Users, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { fmtDate } from '@/lib/date';
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -66,7 +67,7 @@ export function DashboardContent() {
                 <div>
                   <div className="text-sm text-gray-900 font-medium">{c.sheet_id}</div>
                   <div className="text-xs text-gray-400 mt-0.5">
-                    {c.sent_count} sent · {c.failed_count} failed · {new Date(c.sent_at).toLocaleDateString()}
+                    {c.sent_count} sent · {c.failed_count} failed · {fmtDate(c.sent_at)}
                   </div>
                 </div>
                 <span

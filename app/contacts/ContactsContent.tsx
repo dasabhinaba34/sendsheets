@@ -2,6 +2,7 @@
 
 import useSWR from 'swr';
 import { Users } from 'lucide-react';
+import { fmtDate } from '@/lib/date';
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -46,7 +47,7 @@ export function ContactsContent() {
                   <td className="px-5 py-3 text-sm text-gray-900">{c.email}</td>
                   <td className="px-5 py-3 text-sm text-gray-500">{c.name ?? '—'}</td>
                   <td className="px-5 py-3 text-sm text-gray-500 text-right">{c.emails_received}</td>
-                  <td className="px-5 py-3 text-xs text-gray-400 text-right">{new Date(c.last_emailed).toLocaleDateString()}</td>
+                  <td className="px-5 py-3 text-xs text-gray-400 text-right">{fmtDate(c.last_emailed)}</td>
                 </tr>
               ))}
             </tbody>
