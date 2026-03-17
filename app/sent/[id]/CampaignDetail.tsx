@@ -96,7 +96,9 @@ export function CampaignDetail({ id }: { id: string }) {
 
       {/* Live sending progress */}
       {campaign.status === 'sending' && (() => {
-        const processed = campaign.sent_count + campaign.failed_count;
+        // Use actual email records as the source of truth — campaign.sent_count
+        // may be 0 for campaigns stuck before the try/finally fix was deployed.
+        const processed = delivered + failed;
         const pct = campaign.total_rows > 0 ? Math.round((processed / campaign.total_rows) * 100) : 0;
         return (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 space-y-3">
@@ -112,7 +114,7 @@ export function CampaignDetail({ id }: { id: string }) {
               />
             </div>
             <div className="flex justify-between text-[11px] text-blue-500">
-              <span>{campaign.sent_count} sent · {campaign.failed_count} failed</span>
+              <span>{delivered} sent · {failed} failed</span>
               <span>{pct}% complete</span>
             </div>
           </div>
