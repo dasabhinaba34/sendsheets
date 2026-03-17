@@ -52,7 +52,28 @@ function makeRawEmail({
   const pixel = trackingPixelUrl
     ? `<img src="${trackingPixelUrl}" width="1" height="1" style="display:none" alt="" />`
     : '';
-  const html = `<!DOCTYPE html><html><body style="font-family:sans-serif;font-size:15px;color:#222;line-height:1.6">${body}${pixel}</body></html>`;
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #222; line-height: 1.6; margin: 0; padding: 0; }
+  p { margin: 0; padding: 0; min-height: 1em; }
+  p + p { margin-top: 0.6em; }
+  br { display: block; margin: 0; }
+  ul, ol { margin: 0.4em 0; padding-left: 1.5em; }
+  li { margin: 0; padding: 0; }
+  blockquote { margin: 0.5em 0 0.5em 1em; padding-left: 0.8em; border-left: 3px solid #ccc; color: #555; }
+  a { color: #1a73e8; }
+  strong { font-weight: bold; }
+  em { font-style: italic; }
+  code { font-family: monospace; background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; font-size: 13px; }
+  pre { font-family: monospace; background: #f4f4f4; padding: 0.5em; border-radius: 3px; font-size: 13px; margin: 0.5em 0; }
+  h1, h2, h3, h4, h5, h6 { margin: 0.5em 0 0.3em 0; line-height: 1.3; }
+</style>
+</head>
+<body>${body}${pixel}</body>
+</html>`;
 
   const boundary = `boundary_${Date.now()}`;
   const message = [
