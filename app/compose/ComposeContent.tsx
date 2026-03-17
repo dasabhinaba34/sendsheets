@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { SheetLoader } from '@/components/sheets/SheetLoader';
 import { ColumnPicker } from '@/components/sheets/ColumnPicker';
 import { EmailComposer } from '@/components/compose/EmailComposer';
@@ -16,6 +17,7 @@ interface SheetState {
 }
 
 export function ComposeContent() {
+  const router = useRouter();
   const [sheet, setSheet] = useState<SheetState | null>(null);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
@@ -57,6 +59,8 @@ export function ComposeContent() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error ?? 'Send failed');
+    // Navigate immediately — campaign page shows live progress
+    router.push(`/sent/${data.campaignId}`);
   }
 
   async function handleSaveDraft() {

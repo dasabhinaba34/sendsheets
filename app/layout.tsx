@@ -13,8 +13,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sendsheets",
-  description: "Send personalized emails from Google Sheets",
+  title: "Sendsheets — Personalized emails from Google Sheets",
+  description:
+    "Turn any Google Sheet into a personalized email campaign. Write templates with @column variables and send via your own Gmail — free to use.",
+  openGraph: {
+    title: "Sendsheets — Personalized emails from Google Sheets",
+    description:
+      "Turn any Google Sheet into a personalized email campaign. Write templates with @column variables and send via your own Gmail.",
+    type: "website",
+    siteName: "Sendsheets",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sendsheets — Personalized emails from Google Sheets",
+    description:
+      "Turn any Google Sheet into a personalized email campaign. Write templates with @column variables and send via your own Gmail.",
+  },
 };
 
 export default function RootLayout({

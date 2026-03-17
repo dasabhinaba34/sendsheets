@@ -1,7 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { CheckCircle, XCircle, Eye, EyeOff, ArrowLeft, Mail, Send, AlertCircle, BarChart2 } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, EyeOff, ArrowLeft, Mail, Send, AlertCircle, BarChart2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { fmtDateTime, fmtTime, fmtShort } from '@/lib/date';
 
@@ -43,7 +43,10 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
 }
 
 export function CampaignDetail({ id }: { id: string }) {
-  const { data, isLoading } = useSWR(`/api/emails/${id}`, fetcher, { refreshInterval: 10000 });
+  // Poll fast while sending, stop once finished
+  const { data, isLoading } = useSWR(`/api/emails/${id}`, fetcher, {
+    refreshInterval: (d) => d?.campaign?.status === 'sending' ? 2000 : 0,
+  });
 
   if (isLoading) {
     return (
@@ -90,6 +93,31 @@ export function CampaignDetail({ id }: { id: string }) {
           </p>
         </div>
       </div>
+
+      {/* Live sending progress */}
+      {campaign.status === 'sending' && (() => {
+        const processed = campaign.sent_count + campaign.failed_count;
+        const pct = campaign.total_rows > 0 ? Math.round((processed / campaign.total_rows) * 100) : 0;
+        return (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 text-blue-500 animate-spin shrink-0" />
+              <span className="text-sm font-medium text-blue-700">Sending in progress…</span>
+              <span className="ml-auto text-sm font-semibold text-blue-700">{processed} / {campaign.total_rows}</span>
+            </div>
+            <div className="h-2.5 bg-blue-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-[11px] text-blue-500">
+              <span>{campaign.sent_count} sent · {campaign.failed_count} failed</span>
+              <span>{pct}% complete</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">

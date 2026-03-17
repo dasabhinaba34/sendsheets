@@ -115,6 +115,14 @@ export async function updateCampaignStatus(id: string, status: string, sentCount
   });
 }
 
+export async function updateCampaignProgress(id: string, sentCount: number, failedCount: number): Promise<void> {
+  const db = getDb();
+  await db.execute({
+    sql: `UPDATE sent_campaigns SET sent_count = ?, failed_count = ? WHERE id = ?`,
+    args: [sentCount, failedCount, id],
+  });
+}
+
 export async function recordSentEmail(data: Omit<SentEmail, 'sent_at' | 'opened_at' | 'open_count'>): Promise<void> {
   const db = getDb();
   await db.execute({
