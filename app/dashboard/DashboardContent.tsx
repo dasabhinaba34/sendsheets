@@ -62,10 +62,10 @@ export function DashboardContent() {
           </div>
         ) : (
           <div className="space-y-2">
-            {campaigns.slice(0, 5).map((c: { id: string; sheet_id: string; sent_count: number; failed_count: number; status: string; sent_at: string }) => (
-              <div key={c.id} className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 flex items-center justify-between">
+            {campaigns.slice(0, 5).map((c: { id: string; sheet_id: string; subject_template: string; sent_count: number; failed_count: number; status: string; sent_at: string }) => (
+              <Link key={c.id} href={`/sent/${c.id}`} className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 flex items-center justify-between hover:border-gray-300 hover:shadow-sm transition-all">
                 <div>
-                  <div className="text-sm text-gray-900 font-medium">{c.sheet_id}</div>
+                  <div className="text-sm text-gray-900 font-medium">{c.subject_template || c.sheet_id}</div>
                   <div className="text-xs text-gray-400 mt-0.5">
                     {c.sent_count} sent · {c.failed_count} failed · {fmtDate(c.sent_at)}
                   </div>
@@ -81,7 +81,7 @@ export function DashboardContent() {
                 >
                   {c.status}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         )}
