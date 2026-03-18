@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Mail, FileText, Users, Calendar, Send, LogOut } from 'lucide-react';
+import { LayoutDashboard, Mail, FileText, Users, Calendar, Send, LogOut, Settings } from 'lucide-react';
 import useSWR from 'swr';
 
 const navItems = [
@@ -12,6 +12,7 @@ const navItems = [
   { href: '/sent', label: 'Sent', icon: Send },
   { href: '/scheduled', label: 'Scheduled', icon: Calendar },
   { href: '/contacts', label: 'Contacts', icon: Users },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());

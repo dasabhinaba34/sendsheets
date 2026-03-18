@@ -74,6 +74,12 @@ CREATE TABLE IF NOT EXISTS contacts (
   emails_received INTEGER DEFAULT 1,
   last_emailed DATETIME DEFAULT (datetime('now')),
   UNIQUE(user_email, email)
+);
+
+CREATE TABLE IF NOT EXISTS api_keys (
+  id INTEGER PRIMARY KEY,
+  key TEXT NOT NULL,
+  created_at DATETIME DEFAULT (datetime('now'))
 )
 `;
 

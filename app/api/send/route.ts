@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/google/gmail'
 import { getTokensByEmail } from '@/lib/db/tokens'
+import { getApiKey } from '@/lib/db/apiKey'
 
 function interpolate(template: string, recipient: { name: string; email: string }): string {
   return template
@@ -10,7 +11,11 @@ function interpolate(template: string, recipient: { name: string; email: string 
 
 export async function POST(req: NextRequest) {
   const apiKey = req.headers.get('x-api-key')
-  if (!apiKey || apiKey !== process.env.SENDSHEETS_INTERNAL_API_KEY) {
+  if (!apiKey) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const record = await getApiKey()
+  const validKey = record?.key ?? process.env.SENDSHEETS_INTERNAL_API_KEY
+  if (!validKey || apiKey !== validKey) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
