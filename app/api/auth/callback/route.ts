@@ -9,6 +9,8 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const code = url.searchParams.get('code');
   const error = url.searchParams.get('error');
+  const state = url.searchParams.get('state');
+  const returnTo = state ? Buffer.from(state, 'base64url').toString() : null;
 
   if (error || !code) {
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=auth_failed`);
@@ -39,7 +41,8 @@ export async function GET(req: NextRequest) {
     session.userPicture = userInfo.picture ?? undefined;
     await session.save();
 
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard`);
+    const redirectUrl = returnTo ?? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`;
+    return NextResponse.redirect(redirectUrl);
   } catch (err) {
     console.error('Auth callback error:', err);
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/?error=token_exchange_failed`);

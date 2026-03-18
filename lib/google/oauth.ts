@@ -17,12 +17,13 @@ export function getOAuth2Client() {
   );
 }
 
-export function buildAuthUrl(): string {
+export function buildAuthUrl(state?: string): string {
   const oauth2Client = getOAuth2Client();
   return oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
     prompt: 'consent',
+    ...(state ? { state } : {}),
   });
 }
 
