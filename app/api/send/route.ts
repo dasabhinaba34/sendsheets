@@ -3,6 +3,31 @@ import { sendEmail } from '@/lib/google/gmail'
 import { getTokensByEmail } from '@/lib/db/tokens'
 import { getApiKey } from '@/lib/db/apiKey'
 
+async function validateApiKey(req: NextRequest): Promise<boolean> {
+  const apiKey = req.headers.get('x-api-key')
+  if (!apiKey) return false
+  const record = await getApiKey()
+  const validKey = record?.key ?? process.env.SENDSHEETS_INTERNAL_API_KEY
+  return !!validKey && apiKey === validKey
+}
+
+export async function GET(req: NextRequest) {
+  if (!await validateApiKey(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  const userEmail = req.nextUrl.searchParams.get('userEmail')
+  if (!userEmail) return NextResponse.json({ error: 'Missing userEmail' }, { status: 400 })
+
+  const tokens = await getTokensByEmail(userEmail)
+  if (!tokens) {
+    return NextResponse.json(
+      { error: 'user_not_connected', message: 'User has not signed in to Sendsheets' },
+      { status: 404 }
+    )
+  }
+  return NextResponse.json({ connected: true })
+}
+
 function interpolate(template: string, recipient: { name: string; email: string }): string {
   return template
     .replace(/\{\{name\}\}/g, recipient.name)
@@ -10,12 +35,7 @@ function interpolate(template: string, recipient: { name: string; email: string 
 }
 
 export async function POST(req: NextRequest) {
-  const apiKey = req.headers.get('x-api-key')
-  if (!apiKey) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const record = await getApiKey()
-  const validKey = record?.key ?? process.env.SENDSHEETS_INTERNAL_API_KEY
-  if (!validKey || apiKey !== validKey) {
+  if (!await validateApiKey(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
