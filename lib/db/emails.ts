@@ -108,6 +108,14 @@ export async function getCampaignsByUser(userEmail: string): Promise<SentCampaig
   return result.rows.map((r) => toRow<SentCampaign>(r as Record<string, unknown>));
 }
 
+export async function resetCampaignForRetry(id: string): Promise<void> {
+  const db = getDb();
+  await db.execute({
+    sql: `UPDATE sent_campaigns SET status = 'sending', completed_at = NULL WHERE id = ?`,
+    args: [id],
+  });
+}
+
 export async function updateCampaignStatus(id: string, status: string, sentCount: number, failedCount: number): Promise<void> {
   const db = getDb();
   await db.execute({

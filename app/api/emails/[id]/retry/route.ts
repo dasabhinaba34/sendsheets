@@ -3,17 +3,23 @@ import { after } from 'next/server';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/session';
 import { cookies } from 'next/headers';
-import { getCampaignById, getSentEmailsByCampaign, createCampaign } from '@/lib/db/emails';
+import {
+  getCampaignById,
+  getSentEmailsByCampaign,
+  resetCampaignForRetry,
+  recordSentEmail,
+  updateCampaignStatus,
+  updateCampaignProgress,
+} from '@/lib/db/emails';
 import { fetchSheetData } from '@/lib/google/sheets';
 import { sendEmail } from '@/lib/google/gmail';
 import { interpolate } from '@/lib/template';
-import { recordSentEmail, updateCampaignStatus, updateCampaignProgress } from '@/lib/db/emails';
 import { upsertContact } from '@/lib/db/contacts';
 import { v4 as uuidv4 } from 'uuid';
 
 const PROGRESS_FLUSH_EVERY = 10;
 
-async function runCampaign(
+async function resumeCampaign(
   campaignId: string,
   userEmail: string,
   userName: string | undefined,
@@ -21,10 +27,11 @@ async function runCampaign(
   recipientColumn: string,
   subjectTemplate: string,
   bodyTemplate: string,
-  trackOpens: boolean,
+  baseSentCount: number,
+  baseFailedCount: number,
 ) {
-  let sentCount = 0;
-  let failedCount = 0;
+  let newSent = 0;
+  let newFailed = 0;
 
   try {
     for (let i = 0; i < rows.length; i++) {
@@ -35,7 +42,7 @@ async function runCampaign(
       const emailId = uuidv4();
 
       try {
-        const gmailId = await sendEmail(userEmail, to, subject, emailBody, userName, emailId, trackOpens);
+        const gmailId = await sendEmail(userEmail, to, subject, emailBody, userName, emailId, false);
         await recordSentEmail({
           id: emailId,
           campaign_id: campaignId,
@@ -47,7 +54,7 @@ async function runCampaign(
           error: null,
         });
         await upsertContact(userEmail, to);
-        sentCount++;
+        newSent++;
       } catch (err: unknown) {
         const error = err instanceof Error ? err.message : 'Unknown error';
         try {
@@ -62,20 +69,22 @@ async function runCampaign(
             error,
           });
         } catch { /* ignore */ }
-        failedCount++;
+        newFailed++;
       }
 
       if ((i + 1) % PROGRESS_FLUSH_EVERY === 0) {
         try {
-          await updateCampaignProgress(campaignId, sentCount, failedCount);
+          await updateCampaignProgress(campaignId, baseSentCount + newSent, baseFailedCount + newFailed);
         } catch { /* ignore */ }
       }
 
       await new Promise((r) => setTimeout(r, 100));
     }
   } finally {
-    const status = sentCount === 0 ? 'failed' : failedCount === 0 ? 'done' : 'partial';
-    await updateCampaignStatus(campaignId, status, sentCount, failedCount);
+    const totalSent = baseSentCount + newSent;
+    const totalFailed = baseFailedCount + newFailed;
+    const status = totalSent === 0 ? 'failed' : totalFailed === 0 ? 'done' : 'partial';
+    await updateCampaignStatus(campaignId, status, totalSent, totalFailed);
   }
 }
 
@@ -107,6 +116,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     sentEmails.filter((e) => e.status === 'sent').map((e) => e.recipient.toLowerCase().trim())
   );
 
+  const baseSentCount = sentEmails.filter((e) => e.status === 'sent').length;
+  const baseFailedCount = sentEmails.filter((e) => e.status === 'failed').length;
+
   // Re-fetch the sheet and filter out already-sent recipients
   const tab = campaign.sheet_tab ?? 'Sheet1';
   let sheetData: { rows: Record<string, string>[] };
@@ -126,31 +138,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: 'No remaining recipients to send to' }, { status: 400 });
   }
 
-  const newCampaignId = uuidv4();
-  await createCampaign({
-    id: newCampaignId,
-    user_email: session.userEmail,
-    draft_id: campaign.draft_id,
-    sheet_id: campaign.sheet_id,
-    sheet_tab: tab,
-    subject_template: campaign.subject_template,
-    body_template: campaign.body_template,
-    recipient_column: campaign.recipient_column,
-    total_rows: remainingRows.length,
-  });
+  // Reset this campaign back to 'sending' — resume in place
+  await resetCampaignForRetry(id);
 
   after(() =>
-    runCampaign(
-      newCampaignId,
+    resumeCampaign(
+      id,
       session.userEmail!,
       session.userName,
       remainingRows,
       campaign.recipient_column,
       campaign.subject_template,
       campaign.body_template,
-      false,
+      baseSentCount,
+      baseFailedCount,
     )
   );
 
-  return NextResponse.json({ campaignId: newCampaignId, status: 'sending', remainingCount: remainingRows.length });
+  return NextResponse.json({ status: 'sending', remainingCount: remainingRows.length });
 }

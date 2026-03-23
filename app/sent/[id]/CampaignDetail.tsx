@@ -2,7 +2,6 @@
 
 import useSWR from 'swr';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { CheckCircle, XCircle, Eye, EyeOff, ArrowLeft, Mail, AlertCircle, BarChart2, Loader2, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { fmtDateTime, fmtTime, fmtShort } from '@/lib/date';
@@ -45,11 +44,10 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
 }
 
 export function CampaignDetail({ id }: { id: string }) {
-  const router = useRouter();
   const [retrying, setRetrying] = useState(false);
 
   // Poll fast while sending, stop once finished
-  const { data, isLoading } = useSWR(`/api/emails/${id}`, fetcher, {
+  const { data, isLoading, mutate } = useSWR(`/api/emails/${id}`, fetcher, {
     refreshInterval: (d) => d?.campaign?.status === 'sending' ? 2000 : 0,
   });
 
@@ -59,9 +57,11 @@ export function CampaignDetail({ id }: { id: string }) {
       const res = await fetch(`/api/emails/${id}/retry`, { method: 'POST' });
       const result = await res.json();
       if (!res.ok) throw new Error(result.error ?? 'Retry failed');
-      router.push(`/sent/${result.campaignId}`);
+      // Resume on same page — mutate triggers SWR to re-fetch and start polling
+      await mutate();
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Retry failed');
+    } finally {
       setRetrying(false);
     }
   }
