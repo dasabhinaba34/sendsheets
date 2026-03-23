@@ -92,8 +92,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  if (campaign.status !== 'partial' && campaign.status !== 'failed') {
-    return NextResponse.json({ error: 'Only partial or failed campaigns can be retried' }, { status: 400 });
+  const isRetryable =
+    campaign.status === 'partial' ||
+    campaign.status === 'failed' ||
+    (campaign.status === 'done' && campaign.sent_count < campaign.total_rows);
+
+  if (!isRetryable) {
+    return NextResponse.json({ error: 'No unsent recipients to retry' }, { status: 400 });
   }
 
   // Find which recipients were already successfully sent to

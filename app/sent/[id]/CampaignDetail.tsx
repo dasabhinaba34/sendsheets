@@ -104,7 +104,7 @@ export function CampaignDetail({ id }: { id: string }) {
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold text-gray-900 truncate">{campaign.subject_template}</h1>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor}`}>{campaign.status}</span>
-            {(campaign.status === 'partial' || campaign.status === 'failed') && (
+            {(campaign.status === 'partial' || campaign.status === 'failed' || (campaign.status === 'done' && campaign.sent_count < campaign.total_rows)) && (
               <button
                 onClick={handleRetry}
                 disabled={retrying}
