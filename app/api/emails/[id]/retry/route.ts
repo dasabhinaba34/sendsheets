@@ -29,6 +29,7 @@ async function resumeCampaign(
   bodyTemplate: string,
   baseSentCount: number,
   baseFailedCount: number,
+  trackOpens: boolean,
 ) {
   let newSent = 0;
   let newFailed = 0;
@@ -42,7 +43,7 @@ async function resumeCampaign(
       const emailId = uuidv4();
 
       try {
-        const gmailId = await sendEmail(userEmail, to, subject, emailBody, userName, emailId, false);
+        const gmailId = await sendEmail(userEmail, to, subject, emailBody, userName, emailId, trackOpens);
         await recordSentEmail({
           id: emailId,
           campaign_id: campaignId,
@@ -152,6 +153,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       campaign.body_template,
       baseSentCount,
       baseFailedCount,
+      !!campaign.track_opens,
     )
   );
 

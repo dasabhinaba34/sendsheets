@@ -111,6 +111,7 @@ export async function POST(req: NextRequest) {
     draft_id: draftId ?? null,
     sheet_id: sheetId,
     sheet_tab: sheetTab,
+    track_opens: trackOpens ? 1 : 0,
     subject_template: subjectTemplate,
     body_template: bodyTemplate,
     recipient_column: recipientColumn,

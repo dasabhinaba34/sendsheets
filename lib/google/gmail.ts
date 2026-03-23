@@ -140,7 +140,7 @@ export async function sendEmail(
     body,
     from: userEmail,
     fromName,
-    sendAsHtml: trackOpens, // HTML only when tracking (or when we want formatting)
+    sendAsHtml: true, // always HTML — the composer produces HTML content
     trackingPixelUrl,
   });
 

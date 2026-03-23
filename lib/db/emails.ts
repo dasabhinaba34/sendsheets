@@ -21,6 +21,7 @@ export interface SentCampaign {
   draft_id: string | null;
   sheet_id: string;
   sheet_tab: string;
+  track_opens: number;
   subject_template: string;
   body_template: string;
   recipient_column: string;
@@ -85,9 +86,9 @@ export async function deleteDraft(id: string, userEmail: string): Promise<void> 
 export async function createCampaign(data: Omit<SentCampaign, 'sent_count' | 'failed_count' | 'status' | 'sent_at' | 'completed_at'>): Promise<SentCampaign> {
   const db = getDb();
   await db.execute({
-    sql: `INSERT INTO sent_campaigns (id, user_email, draft_id, sheet_id, sheet_tab, subject_template, body_template, recipient_column, total_rows)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    args: [data.id, data.user_email, data.draft_id, data.sheet_id, data.sheet_tab ?? 'Sheet1', data.subject_template, data.body_template, data.recipient_column, data.total_rows],
+    sql: `INSERT INTO sent_campaigns (id, user_email, draft_id, sheet_id, sheet_tab, track_opens, subject_template, body_template, recipient_column, total_rows)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [data.id, data.user_email, data.draft_id, data.sheet_id, data.sheet_tab ?? 'Sheet1', data.track_opens ?? 0, data.subject_template, data.body_template, data.recipient_column, data.total_rows],
   });
   return (await getCampaignById(data.id))!;
 }

@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS sent_campaigns (
   subject_template TEXT NOT NULL,
   body_template TEXT NOT NULL,
   recipient_column TEXT NOT NULL,
+  track_opens INTEGER DEFAULT 0,
   total_rows INTEGER NOT NULL,
   sent_count INTEGER DEFAULT 0,
   failed_count INTEGER DEFAULT 0,

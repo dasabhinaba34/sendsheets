@@ -100,6 +100,7 @@ export async function migrate() {
     'ALTER TABLE sent_emails ADD COLUMN opened_at DATETIME',
     'ALTER TABLE sent_emails ADD COLUMN open_count INTEGER DEFAULT 0',
     "ALTER TABLE sent_campaigns ADD COLUMN sheet_tab TEXT DEFAULT 'Sheet1'",
+    'ALTER TABLE sent_campaigns ADD COLUMN track_opens INTEGER DEFAULT 0',
   ]) {
     try {
       await db.execute(stmt);
