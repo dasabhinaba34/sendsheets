@@ -2,7 +2,7 @@
 
 import useSWR from 'swr';
 import { useState } from 'react';
-import { CheckCircle, XCircle, Eye, EyeOff, ArrowLeft, Mail, AlertCircle, BarChart2, Loader2, RefreshCw } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, EyeOff, ArrowLeft, Mail, AlertCircle, BarChart2, Loader2, RefreshCw, X } from 'lucide-react';
 import Link from 'next/link';
 import { fmtDateTime, fmtTime, fmtShort } from '@/lib/date';
 
@@ -26,6 +26,7 @@ interface SentEmail {
   id: string;
   recipient: string;
   subject: string;
+  body: string;
   status: string;
   error: string | null;
   sent_at: string;
@@ -45,6 +46,7 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
 
 export function CampaignDetail({ id }: { id: string }) {
   const [retrying, setRetrying] = useState(false);
+  const [preview, setPreview] = useState<SentEmail | null>(null);
 
   // Poll fast while sending, stop once finished
   const { data, isLoading, mutate } = useSWR(`/api/emails/${id}`, fetcher, {
@@ -198,7 +200,7 @@ export function CampaignDetail({ id }: { id: string }) {
             </thead>
             <tbody>
               {emails.map((email) => (
-                <tr key={email.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
+                <tr key={email.id} onClick={() => setPreview(email)} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 cursor-pointer">
                   <td className="px-5 py-3 text-sm text-gray-800">{email.recipient}</td>
                   <td className="px-4 py-3 text-center">
                     {email.status === 'sent' ? (
@@ -246,6 +248,30 @@ export function CampaignDetail({ id }: { id: string }) {
               {e.error && <span className="text-red-400 ml-2">— {e.error}</span>}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Email preview modal */}
+      {preview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setPreview(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start gap-3 px-6 py-4 border-b border-gray-100">
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-gray-400 mb-0.5">To: {preview.recipient}</div>
+                <div className="font-semibold text-gray-900 truncate">{preview.subject}</div>
+                <div className="text-xs text-gray-400 mt-0.5">{fmtDateTime(preview.sent_at)}</div>
+              </div>
+              <button onClick={() => setPreview(null)} className="text-gray-400 hover:text-gray-600 mt-0.5 shrink-0">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 px-6 py-5">
+              <div
+                className="prose prose-sm max-w-none text-gray-800"
+                dangerouslySetInnerHTML={{ __html: preview.body }}
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>
