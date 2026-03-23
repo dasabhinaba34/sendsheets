@@ -3,13 +3,15 @@ import { after } from 'next/server';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/session';
 import { cookies } from 'next/headers';
+import { getCampaignById, getSentEmailsByCampaign, createCampaign } from '@/lib/db/emails';
+import { fetchSheetData } from '@/lib/google/sheets';
 import { sendEmail } from '@/lib/google/gmail';
 import { interpolate } from '@/lib/template';
-import { createCampaign, updateCampaignStatus, updateCampaignProgress, recordSentEmail, getCampaignsByUser } from '@/lib/db/emails';
+import { recordSentEmail, updateCampaignStatus, updateCampaignProgress } from '@/lib/db/emails';
 import { upsertContact } from '@/lib/db/contacts';
 import { v4 as uuidv4 } from 'uuid';
 
-const PROGRESS_FLUSH_EVERY = 10; // write progress to DB after every N emails
+const PROGRESS_FLUSH_EVERY = 10;
 
 async function runCampaign(
   campaignId: string,
@@ -48,7 +50,6 @@ async function runCampaign(
         sentCount++;
       } catch (err: unknown) {
         const error = err instanceof Error ? err.message : 'Unknown error';
-        // best-effort — don't let a DB write failure abort the whole loop
         try {
           await recordSentEmail({
             id: emailId,
@@ -64,7 +65,6 @@ async function runCampaign(
         failedCount++;
       }
 
-      // best-effort progress flush — don't let a DB hiccup abort the loop
       if ((i + 1) % PROGRESS_FLUSH_EVERY === 0) {
         try {
           await updateCampaignProgress(campaignId, sentCount, failedCount);
@@ -74,62 +74,78 @@ async function runCampaign(
       await new Promise((r) => setTimeout(r, 100));
     }
   } finally {
-    // Always mark the campaign as complete, even if the loop crashed partway through
     const status = sentCount === 0 ? 'failed' : failedCount === 0 ? 'done' : 'partial';
     await updateCampaignStatus(campaignId, status, sentCount, failedCount);
   }
 }
 
-export async function GET() {
-  const cookieStore = await cookies();
-  const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
-  if (!session.userEmail) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  const campaigns = await getCampaignsByUser(session.userEmail);
-  return NextResponse.json({ campaigns });
-}
-
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();
   const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
   if (!session.userEmail) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await req.json();
-  const { sheetId, sheetTab = 'Sheet1', subjectTemplate, bodyTemplate, recipientColumn, rows, draftId, trackOpens = false } = body;
-
-  if (!sheetId || !subjectTemplate || !bodyTemplate || !recipientColumn || !rows) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  const { id } = await params;
+  const campaign = await getCampaignById(id);
+  if (!campaign || campaign.user_email !== session.userEmail) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  const campaignId = uuidv4();
-  await createCampaign({
-    id: campaignId,
-    user_email: session.userEmail,
-    draft_id: draftId ?? null,
-    sheet_id: sheetId,
-    sheet_tab: sheetTab,
-    subject_template: subjectTemplate,
-    body_template: bodyTemplate,
-    recipient_column: recipientColumn,
-    total_rows: rows.length,
+  if (campaign.status !== 'partial' && campaign.status !== 'failed') {
+    return NextResponse.json({ error: 'Only partial or failed campaigns can be retried' }, { status: 400 });
+  }
+
+  // Find which recipients were already successfully sent to
+  const sentEmails = await getSentEmailsByCampaign(id);
+  const alreadySent = new Set(
+    sentEmails.filter((e) => e.status === 'sent').map((e) => e.recipient.toLowerCase().trim())
+  );
+
+  // Re-fetch the sheet and filter out already-sent recipients
+  const tab = campaign.sheet_tab ?? 'Sheet1';
+  let sheetData: { rows: Record<string, string>[] };
+  try {
+    sheetData = await fetchSheetData(session.userEmail, campaign.sheet_id, tab);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to fetch sheet';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+
+  const remainingRows = sheetData.rows.filter((row) => {
+    const recipient = (row[campaign.recipient_column] ?? '').toLowerCase().trim();
+    return recipient && !alreadySent.has(recipient);
   });
 
-  // Kick off sending after the response is returned — does not block the HTTP request
+  if (remainingRows.length === 0) {
+    return NextResponse.json({ error: 'No remaining recipients to send to' }, { status: 400 });
+  }
+
+  const newCampaignId = uuidv4();
+  await createCampaign({
+    id: newCampaignId,
+    user_email: session.userEmail,
+    draft_id: campaign.draft_id,
+    sheet_id: campaign.sheet_id,
+    sheet_tab: tab,
+    subject_template: campaign.subject_template,
+    body_template: campaign.body_template,
+    recipient_column: campaign.recipient_column,
+    total_rows: remainingRows.length,
+  });
+
   after(() =>
     runCampaign(
-      campaignId,
+      newCampaignId,
       session.userEmail!,
       session.userName,
-      rows,
-      recipientColumn,
-      subjectTemplate,
-      bodyTemplate,
-      trackOpens,
+      remainingRows,
+      campaign.recipient_column,
+      campaign.subject_template,
+      campaign.body_template,
+      false,
     )
   );
 
-  return NextResponse.json({ campaignId, status: 'sending' });
+  return NextResponse.json({ campaignId: newCampaignId, status: 'sending', remainingCount: remainingRows.length });
 }

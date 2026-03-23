@@ -32,7 +32,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const stale = lastEmailAt !== null && Date.now() - lastEmailAt > 2 * 60 * 1000;
 
     if (allDone || stale) {
-      const status = sentCount === 0 ? 'failed' : failedCount === 0 ? 'done' : 'partial';
+      let status: string;
+      if (allDone) {
+        // All rows were processed — determine final state from counts
+        status = sentCount === 0 ? 'failed' : failedCount === 0 ? 'done' : 'partial';
+      } else {
+        // Timed out before all rows were processed — unprocessed rows are implicitly failed
+        status = sentCount === 0 ? 'failed' : 'partial';
+      }
       await updateCampaignStatus(id, status, sentCount, failedCount);
       campaign = { ...campaign, status, sent_count: sentCount, failed_count: failedCount };
     }

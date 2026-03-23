@@ -1,7 +1,9 @@
 'use client';
 
 import useSWR from 'swr';
-import { CheckCircle, XCircle, Eye, EyeOff, ArrowLeft, Mail, Send, AlertCircle, BarChart2, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { CheckCircle, XCircle, Eye, EyeOff, ArrowLeft, Mail, AlertCircle, BarChart2, Loader2, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { fmtDateTime, fmtTime, fmtShort } from '@/lib/date';
 
@@ -43,10 +45,26 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
 }
 
 export function CampaignDetail({ id }: { id: string }) {
+  const router = useRouter();
+  const [retrying, setRetrying] = useState(false);
+
   // Poll fast while sending, stop once finished
   const { data, isLoading } = useSWR(`/api/emails/${id}`, fetcher, {
     refreshInterval: (d) => d?.campaign?.status === 'sending' ? 2000 : 0,
   });
+
+  async function handleRetry() {
+    setRetrying(true);
+    try {
+      const res = await fetch(`/api/emails/${id}/retry`, { method: 'POST' });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error ?? 'Retry failed');
+      router.push(`/sent/${result.campaignId}`);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Retry failed');
+      setRetrying(false);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -86,6 +104,16 @@ export function CampaignDetail({ id }: { id: string }) {
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold text-gray-900 truncate">{campaign.subject_template}</h1>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor}`}>{campaign.status}</span>
+            {(campaign.status === 'partial' || campaign.status === 'failed') && (
+              <button
+                onClick={handleRetry}
+                disabled={retrying}
+                className="inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 hover:bg-yellow-200 disabled:opacity-50 transition-colors font-medium"
+              >
+                {retrying ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                {retrying ? 'Starting…' : 'Retry unsent'}
+              </button>
+            )}
           </div>
           <p className="text-sm text-gray-400 mt-1">
             {campaign.sheet_id} · sent {fmtDateTime(campaign.sent_at)}

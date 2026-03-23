@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS sent_campaigns (
   user_email TEXT NOT NULL,
   draft_id TEXT,
   sheet_id TEXT NOT NULL,
+  sheet_tab TEXT DEFAULT 'Sheet1',
   subject_template TEXT NOT NULL,
   body_template TEXT NOT NULL,
   recipient_column TEXT NOT NULL,

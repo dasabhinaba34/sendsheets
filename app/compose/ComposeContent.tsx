@@ -10,6 +10,7 @@ import { SendControls } from '@/components/compose/SendControls';
 
 interface SheetState {
   sheetId: string;
+  sheetTab: string;
   headers: string[];
   rows: Record<string, string>[];
   rowCount: number;
@@ -25,8 +26,8 @@ export function ComposeContent() {
   const [activeField, setActiveField] = useState<'subject' | 'body' | null>(null);
   const [trackOpens, setTrackOpens] = useState(false);
 
-  function handleSheetLoad(data: { sheetId: string; headers: string[]; rows: Record<string, string>[]; rowCount: number }, url: string) {
-    setSheet({ ...data, sheetUrl: url });
+  function handleSheetLoad(data: { sheetId: string; activeTab: string; headers: string[]; rows: Record<string, string>[]; rowCount: number }, url: string) {
+    setSheet({ ...data, sheetTab: data.activeTab, sheetUrl: url });
     if (data.headers.length > 0 && !recipientColumn) {
       const emailCol = data.headers.find((h) => h.toLowerCase().includes('email'));
       if (emailCol) setRecipientColumn(emailCol);
@@ -50,6 +51,7 @@ export function ComposeContent() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sheetId: sheet.sheetId,
+        sheetTab: sheet.sheetTab,
         subjectTemplate: subject,
         bodyTemplate: body,
         recipientColumn,

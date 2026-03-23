@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Link2, Loader2, TableProperties } from 'lucide-react';
 
 interface SheetLoaderProps {
-  onLoad: (data: { sheetId: string; headers: string[]; rows: Record<string, string>[]; rowCount: number }, url: string) => void;
+  onLoad: (data: { sheetId: string; headers: string[]; rows: Record<string, string>[]; rowCount: number; activeTab: string }, url: string) => void;
 }
 
 export function SheetLoader({ onLoad }: SheetLoaderProps) {
@@ -36,9 +36,10 @@ export function SheetLoader({ onLoad }: SheetLoaderProps) {
       const data = await fetchData(url, 'Sheet1');
       const returnedTabs: string[] = data.tabs ?? [];
       const firstTab = returnedTabs[0] ?? 'Sheet1';
+      const resolvedTab = data.activeTab ?? firstTab;
       setTabs(returnedTabs);
-      setActiveTab(data.activeTab ?? firstTab);
-      onLoad(data, url);
+      setActiveTab(resolvedTab);
+      onLoad({ ...data, activeTab: resolvedTab }, url);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load sheet');
     } finally {
@@ -52,7 +53,7 @@ export function SheetLoader({ onLoad }: SheetLoaderProps) {
     setError('');
     try {
       const data = await fetchData(url, tab);
-      onLoad(data, url);
+      onLoad({ ...data, activeTab: tab }, url);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load sheet');
     } finally {
