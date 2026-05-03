@@ -12,7 +12,7 @@ import {
   updateCampaignProgress,
 } from '@/lib/db/emails';
 import { fetchSheetData } from '@/lib/google/sheets';
-import { sendEmail } from '@/lib/google/gmail';
+import { getProvider } from '@/lib/providers';
 import { interpolate } from '@/lib/template';
 import { upsertContact } from '@/lib/db/contacts';
 import { v4 as uuidv4 } from 'uuid';
@@ -33,6 +33,7 @@ async function resumeCampaign(
 ) {
   let newSent = 0;
   let newFailed = 0;
+  const provider = await getProvider(userEmail, userName);
 
   try {
     for (let i = 0; i < rows.length; i++) {
@@ -43,14 +44,14 @@ async function resumeCampaign(
       const emailId = uuidv4();
 
       try {
-        const gmailId = await sendEmail(userEmail, to, subject, emailBody, userName, emailId, trackOpens);
+        const { messageId } = await provider.send({ to, subject, body: emailBody, emailId, trackOpens });
         await recordSentEmail({
           id: emailId,
           campaign_id: campaignId,
           recipient: to,
           subject,
           body: emailBody,
-          gmail_message_id: gmailId,
+          gmail_message_id: messageId,
           status: 'sent',
           error: null,
         });

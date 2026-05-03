@@ -2,9 +2,178 @@
 
 import { useState } from 'react'
 import useSWR from 'swr'
-import { Copy, Check, RefreshCw, Key } from 'lucide-react'
+import { Copy, Check, RefreshCw, Key, Mail, Loader2, AlertTriangle } from 'lucide-react'
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
+
+function ProviderCard() {
+  const { data, mutate } = useSWR('/api/settings/provider', fetcher)
+  const [provider, setProvider] = useState<'gmail' | 'postmark' | null>(null)
+  const [fromEmail, setFromEmail] = useState('')
+  const [fromName, setFromName] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [testing, setTesting] = useState(false)
+  const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null)
+
+  const currentProvider = provider ?? data?.provider ?? 'gmail'
+
+  // Initialise local form state once data loads
+  if (data && provider === null) {
+    if (data.fromEmail) setFromEmail(data.fromEmail)
+    if (data.fromName) setFromName(data.fromName)
+    setProvider(data.provider ?? 'gmail')
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    setStatus(null)
+    try {
+      const res = await fetch('/api/settings/provider', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider: currentProvider,
+          fromEmail: fromEmail || undefined,
+          fromName: fromName || undefined,
+        }),
+      })
+      const result = await res.json()
+      if (!res.ok) {
+        setStatus({ ok: false, message: result.error ?? 'Failed to save.' })
+      } else {
+        setStatus({ ok: true, message: 'Saved.' })
+        mutate()
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleTest() {
+    setTesting(true)
+    setStatus(null)
+    try {
+      const res = await fetch('/api/settings/provider', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'test', provider: 'postmark', fromEmail: fromEmail || undefined }),
+      })
+      const result = await res.json()
+      if (!res.ok) {
+        setStatus({ ok: false, message: result.error ?? 'Connection failed.' })
+      } else {
+        setStatus({ ok: true, message: 'Connection successful!' })
+      }
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-5">
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
+          <Mail className="w-4 h-4 text-blue-600" />
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold text-gray-900">Email Provider</h2>
+          <p className="text-xs text-gray-400 mt-0.5">Choose how your campaigns are delivered</p>
+        </div>
+      </div>
+
+      {/* Provider selector */}
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Provider</label>
+        <div className="space-y-2">
+          <label className="flex items-center gap-3 px-3 py-2.5 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+            <input
+              type="radio"
+              name="provider"
+              value="gmail"
+              checked={currentProvider === 'gmail'}
+              onChange={() => { setProvider('gmail'); setStatus(null) }}
+              className="accent-gray-900"
+            />
+            <span className="text-sm text-gray-800 font-medium">Gmail</span>
+            {data?.provider === 'gmail' && (
+              <span className="ml-auto text-xs text-green-600 font-medium">Active</span>
+            )}
+          </label>
+          <label className="flex items-center gap-3 px-3 py-2.5 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+            <input
+              type="radio"
+              name="provider"
+              value="postmark"
+              checked={currentProvider === 'postmark'}
+              onChange={() => { setProvider('postmark'); setStatus(null) }}
+              className="accent-gray-900"
+            />
+            <span className="text-sm text-gray-800 font-medium">Postmark</span>
+            {data?.provider === 'postmark' && (
+              <span className="ml-auto text-xs text-green-600 font-medium">Active</span>
+            )}
+          </label>
+        </div>
+      </div>
+
+      {/* Postmark fields */}
+      {currentProvider === 'postmark' && (
+        <div className="space-y-3 pt-1">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">From address</label>
+            <input
+              type="email"
+              value={fromEmail}
+              onChange={e => setFromEmail(e.target.value)}
+              placeholder="you@yourdomain.com"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">From name <span className="normal-case font-normal text-gray-400">(optional)</span></label>
+            <input
+              type="text"
+              value={fromName}
+              onChange={e => setFromName(e.target.value)}
+              placeholder="Your Name"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Status message */}
+      {status && (
+        <div className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm ${status.ok ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
+          {status.ok ? <Check className="w-3.5 h-3.5 flex-shrink-0" /> : <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />}
+          {status.message}
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex items-center gap-2 pt-1">
+        {currentProvider === 'postmark' && (
+          <button
+            onClick={handleTest}
+            disabled={testing || saving}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-200 hover:bg-gray-50 disabled:opacity-50 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+          >
+            {testing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+            {testing ? 'Testing…' : 'Test connection'}
+          </button>
+        )}
+        <button
+          onClick={handleSave}
+          disabled={saving || testing}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-gray-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+          {saving ? 'Saving…' : 'Save'}
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export function SettingsContent() {
   const { data, mutate } = useSWR('/api/settings/api-key', fetcher)
@@ -40,8 +209,10 @@ export function SettingsContent() {
     <div className="space-y-8 max-w-2xl">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-500 text-sm mt-1">Manage your API access credentials</p>
+        <p className="text-gray-500 text-sm mt-1">Manage your email provider and API access</p>
       </div>
+
+      <ProviderCard />
 
       <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-5">
         <div className="flex items-center gap-3">

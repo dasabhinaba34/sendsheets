@@ -80,6 +80,16 @@ CREATE TABLE IF NOT EXISTS api_keys (
   id INTEGER PRIMARY KEY,
   key TEXT NOT NULL,
   created_at DATETIME DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS provider_configs (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_email TEXT    NOT NULL UNIQUE,
+  provider   TEXT    NOT NULL DEFAULT 'gmail',
+  from_email TEXT,
+  from_name  TEXT,
+  api_key    TEXT,
+  updated_at DATETIME DEFAULT (datetime('now'))
 )
 `;
 
@@ -101,6 +111,7 @@ export async function migrate() {
     'ALTER TABLE sent_emails ADD COLUMN open_count INTEGER DEFAULT 0',
     "ALTER TABLE sent_campaigns ADD COLUMN sheet_tab TEXT DEFAULT 'Sheet1'",
     'ALTER TABLE sent_campaigns ADD COLUMN track_opens INTEGER DEFAULT 0',
+    "ALTER TABLE sent_campaigns ADD COLUMN provider TEXT DEFAULT 'gmail'",
   ]) {
     try {
       await db.execute(stmt);

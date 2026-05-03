@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { sendEmail } from '@/lib/google/gmail'
+import { getProvider } from '@/lib/providers'
 import { getTokensByEmail } from '@/lib/db/tokens'
 import { getApiKey } from '@/lib/db/apiKey'
 
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
 
   let sent = 0
   const failed: { email: string; error: string }[] = []
+  const provider = await getProvider(userEmail, tokens.name ?? undefined)
 
   for (const recipient of recipients) {
     if (!recipient.email) {
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
     try {
       const interpolatedSubject = interpolate(subject, recipient)
       const interpolatedBody = interpolate(bodyTemplate, recipient)
-      await sendEmail(userEmail, recipient.email, interpolatedSubject, interpolatedBody)
+      await provider.send({ to: recipient.email, subject: interpolatedSubject, body: interpolatedBody })
       sent++
     } catch (err) {
       failed.push({

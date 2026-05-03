@@ -3,7 +3,8 @@ import { after } from 'next/server';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/session';
 import { cookies } from 'next/headers';
-import { sendEmail } from '@/lib/google/gmail';
+import { getProvider } from '@/lib/providers';
+import { getProviderConfig } from '@/lib/db/provider';
 import { interpolate } from '@/lib/template';
 import { createCampaign, updateCampaignStatus, updateCampaignProgress, recordSentEmail, getCampaignsByUser } from '@/lib/db/emails';
 import { upsertContact } from '@/lib/db/contacts';
@@ -23,6 +24,7 @@ async function runCampaign(
 ) {
   let sentCount = 0;
   let failedCount = 0;
+  const provider = await getProvider(userEmail, userName);
 
   try {
     for (let i = 0; i < rows.length; i++) {
@@ -33,14 +35,14 @@ async function runCampaign(
       const emailId = uuidv4();
 
       try {
-        const gmailId = await sendEmail(userEmail, to, subject, emailBody, userName, emailId, trackOpens);
+        const { messageId } = await provider.send({ to, subject, body: emailBody, emailId, trackOpens });
         await recordSentEmail({
           id: emailId,
           campaign_id: campaignId,
           recipient: to,
           subject,
           body: emailBody,
-          gmail_message_id: gmailId,
+          gmail_message_id: messageId,
           status: 'sent',
           error: null,
         });
@@ -104,6 +106,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
+  const providerConfig = await getProviderConfig(session.userEmail);
   const campaignId = uuidv4();
   await createCampaign({
     id: campaignId,
@@ -116,6 +119,7 @@ export async function POST(req: NextRequest) {
     body_template: bodyTemplate,
     recipient_column: recipientColumn,
     total_rows: rows.length,
+    provider: providerConfig?.provider ?? 'gmail',
   });
 
   // Kick off sending after the response is returned — does not block the HTTP request

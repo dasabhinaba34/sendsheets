@@ -74,3 +74,13 @@ CREATE TABLE IF NOT EXISTS contacts (
   last_emailed DATETIME DEFAULT (datetime('now')),
   UNIQUE(user_email, email)
 );
+
+CREATE TABLE IF NOT EXISTS provider_configs (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_email TEXT    NOT NULL UNIQUE,
+  provider   TEXT    NOT NULL DEFAULT 'gmail',
+  from_email TEXT,
+  from_name  TEXT,
+  api_key    TEXT,
+  updated_at DATETIME DEFAULT (datetime('now'))
+);

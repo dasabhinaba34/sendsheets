@@ -29,6 +29,7 @@ export interface SentCampaign {
   sent_count: number;
   failed_count: number;
   status: string;
+  provider: string;
   sent_at: string;
   completed_at: string | null;
 }
@@ -86,9 +87,9 @@ export async function deleteDraft(id: string, userEmail: string): Promise<void> 
 export async function createCampaign(data: Omit<SentCampaign, 'sent_count' | 'failed_count' | 'status' | 'sent_at' | 'completed_at'>): Promise<SentCampaign> {
   const db = getDb();
   await db.execute({
-    sql: `INSERT INTO sent_campaigns (id, user_email, draft_id, sheet_id, sheet_tab, track_opens, subject_template, body_template, recipient_column, total_rows)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    args: [data.id, data.user_email, data.draft_id, data.sheet_id, data.sheet_tab ?? 'Sheet1', data.track_opens ?? 0, data.subject_template, data.body_template, data.recipient_column, data.total_rows],
+    sql: `INSERT INTO sent_campaigns (id, user_email, draft_id, sheet_id, sheet_tab, track_opens, subject_template, body_template, recipient_column, total_rows, provider)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [data.id, data.user_email, data.draft_id, data.sheet_id, data.sheet_tab ?? 'Sheet1', data.track_opens ?? 0, data.subject_template, data.body_template, data.recipient_column, data.total_rows, data.provider ?? 'gmail'],
   });
   return (await getCampaignById(data.id))!;
 }
